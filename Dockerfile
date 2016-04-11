@@ -24,12 +24,13 @@ RUN echo 'APT::Install-Recommends 0;' >> /etc/apt/apt.conf.d/01norecommends && \
 	useradd librenms -d /opt/librenms -M -r && usermod -a -G librenms www-data && \
 	chown -R nobody:users /home && \
 	rm -rf /etc/service/sshd /etc/my_init.d/00_regen_ssh_host_keys.sh && \
-	locale-gen de_DE.UTF-8 && locale-gen en_US.UTF-8 && \
+	locale-gen pl_PL.UTF-8 && locale-gen en_US.UTF-8 && locale-gen fi_FI.UTF-8 && \
+	add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse" && \
 	apt-get update -q && \
     apt-get install -y --no-install-recommends \
 		libapache2-mod-php5 php5-cli php5-mysql php5-gd php5-snmp php-pear php5-curl snmp graphviz \
 		php5-mcrypt php5-json apache2 fping imagemagick whois mtr-tiny nmap python-mysqldb snmpd \
-		mysql-client php-net-ipv4 php-net-ipv6 rrdtool git at && \
+		mysql-client php-net-ipv4 php-net-ipv6 rrdtool git at rrdcached memcached php5-ldap && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     mkdir -p /data/logs /data/rrd /data/config && \
     cd /opt && \
@@ -50,6 +51,13 @@ RUN echo 'APT::Install-Recommends 0;' >> /etc/apt/apt.conf.d/01norecommends && \
 
 COPY apache2.conf ports.conf /etc/apache2/
 COPY apache-vhost /etc/apache2/sites-available/000-default.conf
+
+#RRDCACHED Configuration
+RUN mkdir /var/run/rrdcached && \
+    chown librenms:librenms /var/run/rrdcached && \
+    chmod 755 /var/run/rrdcached
+COPY rrdcached /etc/default
+RUN  service rrdcached restart
 
 EXPOSE 80/tcp
 
