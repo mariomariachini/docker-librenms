@@ -99,7 +99,7 @@ DB_NAME=${DB_NAME:-librenms}
 
 sed -i -e "s/\$config\['db_pass'\] = .*;/\$config\['db_pass'\] = \"$DB_PASS\";/g" /data/config/config.php
 sed -i -e "s/\$config\['db_user'\] = .*;/\$config\['db_user'\] = \"$DB_USER\";/g" /data/config/config.php
-sed -i -e "s/\$config\['db_host'\] = .*;/\$config\['db_host'\] = \"mysql\";/g" /data/config/config.php
+sed -i -e "s/\$config\['db_host'\] = .*;/\$config\['db_host'\] = \"$DB_HOST\";/g" /data/config/config.php
 sed -i -e "s/\$config\['db_name'\] = .*;/\$config\['db_name'\] = \"$DB_NAME\";/g" /data/config/config.php
 sed -i "/\$config\['rrd_dir'\].*;/d" /data/config/config.php
 sed -i "/\$config\['log_file'\].*;/d" /data/config/config.php
@@ -107,23 +107,6 @@ sed -i "/\$config\['log_dir'\].*;/d" /data/config/config.php
 echo "\$config['rrd_dir']       = \"/data/rrd\";" >> /data/config/config.php
 echo "\$config['log_file']      = \"/data/logs/librenms.log\";" >> /data/config/config.php
 echo "\$config['log_dir']       = \"/data/logs\";" >> /data/config/config.php
-
-# checking for supported plugins
-#weathermap
-if [ -f /etc/container_environment/WEATHERMAP ] ; then
-	cd /data/plugins/
-	if [ ! -d /data/plugins/Weathermap ] ; then
-		git clone https://github.com/setiseta/Weathermap.git
-	else
-		cd /data/plugins/Weathermap
-		git pull 
-	fi
-	chown www-data:www-data /data/plugins/Weathermap/configs -R
-	chown www-data:www-data /data/plugins/Weathermap/output -R
-	chmod +x /data/plugins/Weathermap/map-poller.php
-	echo "*/5 * * * *   root    php /opt/librenms/html/plugins/Weathermap/map-poller.php >> /dev/null 2>&1" > /etc/cron.d/weathermap
-	sed -i -e "s/\$ENABLED=false;/\$ENABLED=true;/g" /data/plugins/Weathermap/editor.php
-fi
 
 prog="mysqladmin -h ${DB_HOST} -P ${DB_PORT} -u ${DB_USER} ${DB_PASS:+-p$DB_PASS} status"
 timeout=60
